@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
 class AdapterPlantItem(private val plants: List<Plant?>, private val context: Context): RecyclerView.Adapter<AdapterPlantItem.ViewHolder>() {
-
     class ViewHolder(view: View): RecyclerView.ViewHolder(view){
         val plantImage: ImageView = view.findViewById(R.id.item_plant_img)
         val plantName: TextView = view.findViewById(R.id.item_plant_name)
