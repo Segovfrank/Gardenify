@@ -6,5 +6,6 @@ data class Plant(
     val scientific_name: String,
     val id: Int,
     val complete_data: Boolean,
-    val common_name: String
+    val common_name: String,
+    var imageUrl: String?
 )

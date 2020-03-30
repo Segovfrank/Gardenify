@@ -13,6 +13,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 class MainActivity : AppCompatActivity(), Callback<List<Plant?>?> {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var treffleService: TreffleService
+    private var plantList = mutableListOf<Plant?>()
 
     companion object{
         const val TAG = "MainActivity"
@@ -28,11 +30,11 @@ class MainActivity : AppCompatActivity(), Callback<List<Plant?>?> {
     private fun init() {
 
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://trefle.io/")
+            .baseUrl("https://trefle.io")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-        val treffleService = retrofit.create(TreffleService::class.java)
+        treffleService = retrofit.create(TreffleService::class.java)
 
         val result = treffleService.listPlants(getString(R.string.token))
 
@@ -45,6 +47,39 @@ class MainActivity : AppCompatActivity(), Callback<List<Plant?>?> {
     }
 
     override fun onResponse(call: Call<List<Plant?>?>, response: Response<List<Plant?>?>) {
-        Log.d(TAG, "Succes: $response")
+        if(response.isSuccessful){
+            Log.d(TAG, "Succes: $response")
+            if(!response.body().isNullOrEmpty()){
+                plantList.addAll(response.body()!!)
+                var plantCounter = 0
+
+                for(p in response.body()!!){
+                    p?.let{
+                        val plantResult = treffleService.getPlantById(getString(R.string.token), it.id)
+                        plantResult?.enqueue(object: Callback<PlantDetails?>{
+                            override fun onFailure(call: Call<PlantDetails?>, t: Throwable) {
+                            }
+
+                            override fun onResponse(call: Call<PlantDetails?>, response: Response<PlantDetails?>) {
+                                Log.d(TAG, "Plant details: ${response.body()}")
+                                if(response.body() != null && response.body()!!.images != null && response.body()!!.images!!.isNotEmpty()){
+                                    plantList[plantCounter]?.imageUrl = response.body()!!.images!![0]?.get("url")
+                                }
+                                plantCounter++
+                                if(plantCounter >= plantList.size){
+                                    val adapterPlantItem = AdapterPlantItem(plantList, this@MainActivity)
+                                    binding.mainRecyclerview.adapter = adapterPlantItem
+                                }
+
+                            }
+
+                        })
+                    }
+                }
+
+            }
+
+        }
+
     }
 }
