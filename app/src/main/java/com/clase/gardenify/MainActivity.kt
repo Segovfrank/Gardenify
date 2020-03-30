@@ -2,6 +2,7 @@ package com.clase.gardenify
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.clase.gardenify.databinding.ActivityMainBinding
 import retrofit2.Call
@@ -9,6 +10,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity(), Callback<List<Plant?>?> {
 
@@ -18,6 +20,15 @@ class MainActivity : AppCompatActivity(), Callback<List<Plant?>?> {
 
     companion object{
         const val TAG = "MainActivity"
+            val IMAGES = listOf(
+                "https://cdn.pixabay.com/photo/2016/08/11/09/40/water-lily-1585178_960_720.jpg",
+                "https://cdn.pixabay.com/photo/2016/12/05/16/46/pine-1884335_960_720.jpg",
+                "https://cdn.pixabay.com/photo/2017/06/18/21/37/rose-2417334_960_720.jpg",
+                "https://cdn.pixabay.com/photo/2016/08/04/09/19/marigold-1568646_960_720.jpg",
+                "https://cdn.pixabay.com/photo/2015/06/16/16/46/meadow-811339_960_720.jpg",
+                "https://cdn.pixabay.com/photo/2015/01/29/11/36/rose-616013_960_720.jpg",
+                "https://cdn.pixabay.com/photo/2018/09/24/05/00/chinese-lantern-3699126_960_720.jpg"
+            )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,8 +65,11 @@ class MainActivity : AppCompatActivity(), Callback<List<Plant?>?> {
                 var plantCounter = 0
 
                 for(p in response.body()!!){
+                    Log.d(TAG, "${response.body()}")
+
                     p?.let{
-                        val plantResult = treffleService.getPlantById(getString(R.string.token), it.id)
+                        it.imageUrl = IMAGES[Random.nextInt(IMAGES.size)]
+                        /*val plantResult = treffleService.getPlantById(getString(R.string.token), it.id)
                         plantResult?.enqueue(object: Callback<PlantDetails?>{
                             override fun onFailure(call: Call<PlantDetails?>, t: Throwable) {
                             }
@@ -73,9 +87,13 @@ class MainActivity : AppCompatActivity(), Callback<List<Plant?>?> {
 
                             }
 
-                        })
+                        })*/
+
                     }
                 }
+                val adapterPlantItem = AdapterPlantItem(plantList, this@MainActivity)
+                binding.mainRecyclerview.adapter = adapterPlantItem
+                binding.progressBar.visibility = View.GONE
 
             }
 

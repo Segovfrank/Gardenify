@@ -10,9 +10,15 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import java.io.Serializable
+import kotlin.random.Random
 
-class AdapterPlantItem(private val plants: List<Plant?>, private val context: Context): RecyclerView.Adapter<AdapterPlantItem.ViewHolder>() {
-    class ViewHolder(view: View): RecyclerView.ViewHolder(view){
+class AdapterPlantItem(private val plants: List<Plant?>, private val context: Context) :
+    RecyclerView.Adapter<AdapterPlantItem.ViewHolder>() {
+
+    private val randomPicks = hashSetOf<Plant?>()
+
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val plantImage: ImageView = view.findViewById(R.id.item_plant_img)
         val plantName: TextView = view.findViewById(R.id.item_plant_name)
         val plantDescription: TextView = view.findViewById(R.id.item_plant_desc)
@@ -20,7 +26,13 @@ class AdapterPlantItem(private val plants: List<Plant?>, private val context: Co
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_plant_view, parent, false))
+        return ViewHolder(
+            LayoutInflater.from(parent.context).inflate(
+                R.layout.item_plant_view,
+                parent,
+                false
+            )
+        )
     }
 
     override fun getItemCount(): Int {
@@ -29,19 +41,25 @@ class AdapterPlantItem(private val plants: List<Plant?>, private val context: Co
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
+        Glide.with(context)
+            .load(plants[position]?.imageUrl)
+            .placeholder(R.drawable.plant_placeholder)
+            .into(holder.plantImage)
+
         holder.plantCard.setOnClickListener {
-            context.startActivity(Intent(context, ))
+            while (randomPicks.size < 5) {
+                val r = Random.nextInt(plants.size)
+                randomPicks.add(plants[r])
+            }
+            val plantIntent = Intent(context, PlantActivity::class.java)
+            plantIntent.putExtra("plant", plants[position] as Serializable)
+            plantIntent.putExtra("recommendations", randomPicks as Serializable)
+            context.startActivity(plantIntent)
         }
 
-        plants[position]?.imageUrl?.let{
-            Glide.with(context)
-                .load(it)
-                .placeholder(R.drawable.plant_placeholder)
-                .into(holder.plantImage)
-        }
-        if(plants[position]?.common_name.isNullOrBlank()){
+        if (plants[position]?.common_name.isNullOrBlank()) {
             holder.plantName.text = plants[position]?.scientific_name!!.capitalize()
-        }else{
+        } else {
             holder.plantName.text = plants[position]?.common_name!!.capitalize()
         }
         holder.plantDescription.text = "Known as ${plants[position]?.scientific_name}"
